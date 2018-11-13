@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -25,6 +26,7 @@ public class CaptureActivity extends AppCompatActivity implements View.OnClickLi
 
     final int IMAGE_CAPTURE = 102;
     final int IMAGE_GALLERY = 103;
+    final String IMAGE_FILE_NAME = "sampleimage.jpg";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +48,20 @@ public class CaptureActivity extends AppCompatActivity implements View.OnClickLi
                 }
                 break;
             case R.id.galleryButton:
+                try {
+                    FileInputStream fileInputStream = openFileInput(IMAGE_FILE_NAME);
+                    byte[] buffer = new byte[fileInputStream.available()];
+                    fileInputStream.read(buffer);
+
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(buffer, 0, buffer.length);
+                    ((ImageView)findViewById(R.id.fileImageView)).setImageBitmap(bitmap);
+
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
                 break;
         }
     }
@@ -57,37 +73,18 @@ public class CaptureActivity extends AppCompatActivity implements View.OnClickLi
         return byteArray;
     }
 
-    private Bitmap byteArrayToBitmap(byte[] byteArray) {
-        Bitmap bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
-        return bitmap;
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        String fileName = "sampleimage.jpg";
+
         if(requestCode==IMAGE_CAPTURE && data!=null) {
             Bundle bundle = data.getExtras();
             Bitmap bitmap = (Bitmap)bundle.get("data");
             ((ImageView)findViewById(R.id.captureImageView)).setImageBitmap(bitmap);
 
             try {
-                FileOutputStream fileOutputStream = openFileOutput(fileName, Context.MODE_PRIVATE);
+                FileOutputStream fileOutputStream = openFileOutput(IMAGE_FILE_NAME, Context.MODE_PRIVATE);
                 fileOutputStream.write(bitmapToByteArray(bitmap));
                 fileOutputStream.close();
-
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        else if(requestCode==IMAGE_GALLERY) {
-            try {
-                FileInputStream fileInputStream = openFileInput(fileName);
-                byte[] buffer = new byte[fileInputStream.available()];
-                fileInputStream.read(buffer);
-                Bitmap bitmap = byteArrayToBitmap(buffer);
-                ((ImageView)findViewById(R.id.fileImageView)).setImageBitmap(bitmap);
 
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
